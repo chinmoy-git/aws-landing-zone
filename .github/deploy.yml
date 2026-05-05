@@ -1,0 +1,22 @@
+name: Deploy Landing Zone
+on: [push]
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1 
+      - run: pip install -r requirements.txt
+      - run: npm install -g aws-cdk
+      - run: npx cdk deploy --all --require-approval never
