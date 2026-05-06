@@ -2,11 +2,11 @@ name: Deploy Landing Zone
 on: [push]
 
 permissions:
-  id-token: write
-  contents: read
+  id-token: write    # Required for OIDC
+  contents: read     # Required for Checkout
 
 env:
-  # Account IDs for CDK context
+  # Account IDs for CDK Context
   MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
   LOG_ARCHIVE_ACCOUNT_ID: ${{ secrets.LOG_ARCHIVE_ACCOUNT_ID }}
   NETWORK_ACCOUNT_ID: ${{ secrets.NETWORK_ACCOUNT_ID }}
@@ -14,58 +14,59 @@ env:
   ORG_ROOT_ID: ${{ secrets.ORG_ROOT_ID }}
 
 jobs:
+  # 1. MANAGEMENT ACCOUNT: Governance & Billing
   deploy-mgmt:
     name: 1. Management (Governance)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Configure AWS (Management)
+      - name: Configure AWS (Mgmt)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.MGMT_ROLE_ARN }}
           aws-region: us-east-1
-      - name: Deploy Org
+      - name: Deploy OrgStack
         run: |
           pip install -r requirements.txt
-          npm install -g aws-cdk
           npx cdk deploy OrgStack --require-approval never
 
+  # 2. LOG-ARCHIVE ACCOUNT: Security Vault
   deploy-security:
-    name: 2. Log-Archive (Security)
-    needs: deploy-mgmt
+    name: 2. Security (Logging)
+    needs: deploy-mgmt # Only runs if Mgmt is successful
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Configure AWS (Security)
+      - name: Configure AWS (Log-Archive)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.LOG_ARCHIVE_ROLE_ARN }}
           aws-region: us-east-1
-      - name: Deploy Logs
+      - name: Deploy LogArchiveStack
         run: |
           pip install -r requirements.txt
-          npm install -g aws-cdk
           npx cdk deploy LogArchiveStack --require-approval never
 
+  # 3. NETWORKING ACCOUNT: Regional Traffic Control
   deploy-network:
     name: 3. Networking (Traffic)
     needs: deploy-security
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Configure AWS (Network)
+      - name: Configure AWS (Networking)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.NETWORK_ROLE_ARN }}
-          aws-region: us-east-1
-      - name: Deploy Networks (Mumbai & VA)
+          aws-region: us-east-1 # Primary OIDC login region
+      - name: Deploy Mumbai & Virginia VPCs
         run: |
           pip install -r requirements.txt
-          npm install -g aws-cdk
           npx cdk deploy NetworkMumbai NetworkVirginia --require-approval never
 
+  # 4. WORKLOAD ACCOUNT: AI Apps & Automation
   deploy-workload:
-    name: 4. Workload (AI Platform)
+    name: 4. Workload (AI Ops)
     needs: deploy-network
     runs-on: ubuntu-latest
     steps:
@@ -75,8 +76,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.WORKLOAD_ROLE_ARN }}
           aws-region: us-east-1
-      - name: Deploy App
+      - name: Deploy WorkloadStack
         run: |
           pip install -r requirements.txt
-          npm install -g aws-cdk
           npx cdk deploy WorkloadStack --require-approval never
