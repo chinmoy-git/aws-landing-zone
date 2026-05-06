@@ -3,6 +3,15 @@ on: [push]
 permissions:
   id-token: write
   contents: read
+
+env:
+  MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+  ORG_ROOT_ID: ${{ secrets.ORG_ROOT_ID }}
+  LOG_ARCHIVE_ACCOUNT_ID: ${{ secrets.LOG_ARCHIVE_ACCOUNT_ID }}
+  NETWORK_ACCOUNT_ID: ${{ secrets.NETWORK_ACCOUNT_ID }}
+  WORKLOAD_ACCOUNT_ID: ${{ secrets.WORKLOAD_ACCOUNT_ID }}
+  # ... add others as needed
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
