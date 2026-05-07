@@ -2,19 +2,19 @@ name: Deploy Landing Zone
 on: [push]
 
 permissions:
-  id-token: write    # Required for OIDC
-  contents: read     # Required for Checkout
+  id-token: write
+  contents: read
 
 env:
   MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
   LOG_ARCHIVE_ACCOUNT_ID: ${{ secrets.LOG_ARCHIVE_ACCOUNT_ID }}
   NETWORK_ACCOUNT_ID: ${{ secrets.NETWORK_ACCOUNT_ID }}
   WORKLOAD_ACCOUNT_ID: ${{ secrets.WORKLOAD_ACCOUNT_ID }}
+  ORG_ROOT_ID: ${{ secrets.ORG_ROOT_ID }} # <--- FUEL FOR THE ENGINE
 
 jobs:
-  # 1. MANAGEMENT
   deploy-mgmt:
-    name: 1. Management (Governance)
+    name: 1. Management
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,9 +28,8 @@ jobs:
           pip install -r requirements.txt
           npx cdk deploy OrgGovernanceStack --require-approval never
 
-  # 2. LOG-ARCHIVE
   deploy-security:
-    name: 2. Security (Logging)
+    name: 2. Security
     needs: deploy-mgmt
     runs-on: ubuntu-latest
     steps:
@@ -45,9 +44,8 @@ jobs:
           pip install -r requirements.txt
           npx cdk deploy LogArchiveCentralStack --require-approval never
 
-  # 3. GLOBAL CONTROL (MUMBAI)
   deploy-mumbai:
-    name: 3. Networking (Mumbai Control)
+    name: 3. Networking Mumbai
     needs: deploy-security
     runs-on: ubuntu-latest
     steps:
@@ -62,9 +60,8 @@ jobs:
           pip install -r requirements.txt
           npx cdk deploy GlobalControlNetworkMumbai --require-approval never
 
-  # 4. WORKLOAD INFRA & BASELINE
   deploy-workload:
-    name: 4. Workload (Shared Infra & Baseline)
+    name: 4. Workload Platform
     needs: deploy-mumbai
     runs-on: ubuntu-latest
     steps:
@@ -74,7 +71,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.WORKLOAD_ROLE_ARN }}
           aws-region: us-east-1
-      - name: Deploy Workload
+      - name: Deploy
         run: |
           pip install -r requirements.txt
           npx cdk deploy WorkloadSharedNetwork WorkloadAccountBaseline --require-approval never
