@@ -47,20 +47,20 @@ jobs:
           pip install -r requirements.txt
           npx cdk deploy LogArchiveStack --require-approval never
 
-  # # 3. NETWORKING ACCOUNT: Regional Traffic Control
-  # deploy-network:
-  #   name: 3. Networking (Traffic)
-  #   needs: deploy-security
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v4
-  #       with:
-  #         python-version: '3.9'
-  #     - name: Install dependencies
-  #       run: |
-  #         pip install -r requirements.txt
-  #         npm install -g aws-cdk
+  # 3. NETWORKING ACCOUNT: Regional Traffic Control
+  deploy-network:
+    name: 3. Networking (Traffic)
+    needs: deploy-security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          npm install -g aws-cdk
 
       # - name: Configure AWS (Mumbai)
       #   uses: aws-actions/configure-aws-credentials@v4
