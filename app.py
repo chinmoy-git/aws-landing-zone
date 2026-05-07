@@ -31,25 +31,25 @@ if log_id:
         env=cdk.Environment(account=log_id, region="us-east-1")
     )
 
-# # 4. NETWORKING ACCOUNT (Mumbai - Personal Speed)
-# # We deploy networking here so your test instances feel fast from Kolkata.
-# if net_id:
-#     NetworkStack(app, "NetworkMumbai", 
-#         env=cdk.Environment(account=net_id, region="ap-south-1")
-#     )
+# 4. NETWORKING ACCOUNT (Mumbai - Personal Speed)
+# We deploy networking here so your test instances feel fast from Kolkata.
+if net_id:
+    NetworkStack(app, "NetworkMumbai", 
+        env=cdk.Environment(account=net_id, region="ap-south-1")
+    )
 
-# # 5. NETWORKING ACCOUNT (Virginia - Workload House)
-# # REQUIRED: Your Virginia apps need a Virginia network to live in.
-# if net_id:
-#     NetworkStack(app, "NetworkVirginia", 
-#         env=cdk.Environment(account=net_id, region="us-east-1")
-#     )
+# 5. NETWORKING ACCOUNT (Virginia - Workload House)
+# REQUIRED: Your Virginia apps need a Virginia network to live in.
+if net_id:
+    NetworkStack(app, "NetworkVirginia", 
+        env=cdk.Environment(account=net_id, region="us-east-1")
+    )
 
-# # 6. WORKLOAD ACCOUNT (Virginia - The AI Engine)
-# # Virginia is the hub for Amazon Bedrock and the newest AI models.
-# if work_id:
-#     WorkloadStack(app, "WorkloadStack",
-#         env=cdk.Environment(account=work_id, region="us-east-1")
-#     )
+# 6. WORKLOAD ACCOUNT (Virginia - The AI Engine)
+# Virginia is the hub for Amazon Bedrock and the newest AI models.
+if work_id:
+    WorkloadStack(app, "WorkloadStack",
+        env=cdk.Environment(account=work_id, region="us-east-1")
+    )
 
 app.synth()
