@@ -1,2 +1,2 @@
-class NetworkStack(Stack):
+class NetworkStack:
     pass

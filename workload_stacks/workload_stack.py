@@ -1,2 +1,2 @@
-class WorkloadStack(Stack):
+class WorkloadStack:
     pass
