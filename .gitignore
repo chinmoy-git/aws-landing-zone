@@ -1,10 +1,24 @@
-*.swp
+# --- Environment & Dependencies ---
+.venv/
+env/
+node_modules/
 package-lock.json
-__pycache__
-.pytest_cache
-.venv
-*.egg-info
 
-# CDK asset staging directory
-.cdk.staging
-cdk.out
+# --- Python Artifacts ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# --- CDK & AWS Specific ---
+cdk.out/
+.cdk.staging/
+*.swp
+.aws/
+
+# --- IDE & OS Trash ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
