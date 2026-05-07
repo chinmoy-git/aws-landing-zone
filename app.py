@@ -29,15 +29,14 @@ if log_id:
     )
 
 # 4. WORKLOAD SHARED INFRASTRUCTURE (The "Highway")
-# SCALE NOTE: This name "WorkloadSharedNetwork" is suitable for 1 or 100 apps.
-# It is deployed in the Workload account to eliminate cross-account NAT costs.
+# TARGET: Workload Account (To avoid cross-account NAT/Transit costs)
 if work_id:
     NetworkStack(app, "WorkloadSharedNetwork", 
         env=cdk.Environment(account=work_id, region="us-east-1")
     )
 
-# 5. NETWORKING ACCOUNT (The Global Control Tower)
-# This stays in the Networking account for future Transit Gateway/VPN tools.
+# 5. NETWORKING ACCOUNT (Global Control Tower)
+# TARGET: Networking Account (Mumbai for personal latency testing)
 if net_id:
     NetworkStack(app, "GlobalControlNetworkMumbai", 
         env=cdk.Environment(account=net_id, region="ap-south-1")
