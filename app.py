@@ -2,7 +2,7 @@
 import os
 import aws_cdk as cdk
 
-# Importing your modular stacks from their respective directories
+# Importing modular stacks
 from org_stacks.org_stack import OrgStack
 from security_stacks.log_archive_stack import LogArchiveStack
 from network_stacks.network_stack import NetworkStack
@@ -10,45 +10,42 @@ from workload_stacks.workload_stack import WorkloadStack
 
 app = cdk.App()
 
-# 1. RETRIEVE ACCOUNT IDS FROM ENVIRONMENT (GitHub Secrets / Local Env)
-# This prevents exposing your private IDs in your public GitHub repo.
+# 1. RETRIEVE ACCOUNT IDS FROM ENVIRONMENT
 mgmt_id = os.getenv("MGMT_ACCOUNT_ID")
 log_id  = os.getenv("LOG_ARCHIVE_ACCOUNT_ID")
 net_id  = os.getenv("NETWORK_ACCOUNT_ID")
 work_id = os.getenv("WORKLOAD_ACCOUNT_ID")
 
-# 2. MANAGEMENT ACCOUNT (Virginia - The Governance Hub)
-# Must be Virginia to monitor Global Billing Alarms (The Debt Sniper).
+# 2. MANAGEMENT ACCOUNT (Governance Hub)
 if mgmt_id:
-    OrgStack(app, "OrgStack", 
+    OrgStack(app, "OrgGovernanceStack", 
         env=cdk.Environment(account=mgmt_id, region="us-east-1")
     )
 
-# 3. LOG-ARCHIVE ACCOUNT (Virginia - The Security Vault)
-# Virginia offers the most cost-effective S3 storage for your audit logs.
+# 3. LOG-ARCHIVE ACCOUNT (Security Vault)
 if log_id:
-    LogArchiveStack(app, "LogArchiveStack",
+    LogArchiveStack(app, "LogArchiveCentralStack",
         env=cdk.Environment(account=log_id, region="us-east-1")
     )
 
-# 4. NETWORKING ACCOUNT (Mumbai - Personal Speed)
-# We deploy networking here so your test instances feel fast from Kolkata.
+# 4. WORKLOAD SHARED INFRASTRUCTURE (The "Highway")
+# SCALE NOTE: This name "WorkloadSharedNetwork" is suitable for 1 or 100 apps.
+# It is deployed in the Workload account to eliminate cross-account NAT costs.
+if work_id:
+    NetworkStack(app, "WorkloadSharedNetwork", 
+        env=cdk.Environment(account=work_id, region="us-east-1")
+    )
+
+# 5. NETWORKING ACCOUNT (The Global Control Tower)
+# This stays in the Networking account for future Transit Gateway/VPN tools.
 if net_id:
-    NetworkStack(app, "NetworkMumbai", 
+    NetworkStack(app, "GlobalControlNetworkMumbai", 
         env=cdk.Environment(account=net_id, region="ap-south-1")
     )
 
-# 5. NETWORKING ACCOUNT (Virginia - Workload House)
-# REQUIRED: Your Virginia apps need a Virginia network to live in.
-if net_id:
-    NetworkStack(app, "NetworkVirginia", 
-        env=cdk.Environment(account=net_id, region="us-east-1")
-    )
-
-# 6. WORKLOAD ACCOUNT (Virginia - The AI Engine)
-# Virginia is the hub for Amazon Bedrock and the newest AI models.
+# 6. WORKLOAD APP BASELINE (Identity & Permissions)
 if work_id:
-    WorkloadStack(app, "WorkloadStack",
+    WorkloadStack(app, "WorkloadAccountBaseline",
         env=cdk.Environment(account=work_id, region="us-east-1")
     )
 
