@@ -48,39 +48,39 @@ jobs:
           npx cdk deploy LogArchiveStack --require-approval never
 
   # 3. NETWORKING ACCOUNT: Regional Traffic Control
-    deploy-network:
-      name: 3. Networking (Traffic)
-      needs: deploy-security
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v4
-          with:
-            python-version: '3.9'
-        
-        # Step A: Install dependencies (REQUIRED for every job)
-        - name: Install dependencies
-          run: |
-            pip install -r requirements.txt
-            npm install -g aws-cdk
+  deploy-network:
+    name: 3. Networking (Traffic)
+    needs: deploy-security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      # Step A: Install dependencies (REQUIRED for every job)
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          npm install -g aws-cdk
 
-        # Step B: Log into MUMBAI
-        - name: Configure AWS (Mumbai)
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            role-to-assume: ${{ secrets.NETWORK_ROLE_ARN }}
-            aws-region: ap-south-1 # <--- Mumbai Target
-        - name: Deploy Mumbai VPC
-          run: npx cdk deploy NetworkMumbai --require-approval never
+      # Step B: Log into MUMBAI
+      - name: Configure AWS (Mumbai)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.NETWORK_ROLE_ARN }}
+          aws-region: ap-south-1 # <--- Mumbai Target
+      - name: Deploy Mumbai VPC
+        run: npx cdk deploy NetworkMumbai --require-approval never
 
-        # Step C: Log into VIRGINIA
-        - name: Configure AWS (Virginia)
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            role-to-assume: ${{ secrets.NETWORK_ROLE_ARN }}
-            aws-region: us-east-1 # <--- Virginia Target
-        - name: Deploy Virginia VPC
-          run: npx cdk deploy NetworkVirginia --require-approval never
+      # Step C: Log into VIRGINIA
+      - name: Configure AWS (Virginia)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.NETWORK_ROLE_ARN }}
+          aws-region: us-east-1 # <--- Virginia Target
+      - name: Deploy Virginia VPC
+        run: npx cdk deploy NetworkVirginia --require-approval never
 
   # 4. WORKLOAD ACCOUNT: AI Apps & Automation
   deploy-workload:
