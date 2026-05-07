@@ -38,11 +38,11 @@ if net_id:
         env=cdk.Environment(account=net_id, region="ap-south-1")
     )
 
-# 5. NETWORKING ACCOUNT (Virginia - Workload House)
-# REQUIRED: Your Virginia apps need a Virginia network to live in.
-if net_id:
-    NetworkStack(app, "NetworkVirginia", 
-        env=cdk.Environment(account=net_id, region="us-east-1")
+# 5. WORKLOAD SHARED NETWORK (Virginia)
+# STRATEGIC MOVE: Deployed in WORKLOAD account to save cross-account data costs.
+if work_id:
+    NetworkStack(app, "WorkloadSharedNetwork", 
+        env=cdk.Environment(account=work_id, region="us-east-1")
     )
 
 # 6. WORKLOAD ACCOUNT (Virginia - The AI Engine)
