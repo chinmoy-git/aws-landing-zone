@@ -30,22 +30,22 @@ jobs:
           pip install -r requirements.txt
           npx cdk deploy OrgStack --require-approval never
 
-  # # 2. LOG-ARCHIVE ACCOUNT: Security Vault
-  # deploy-security:
-  #   name: 2. Security (Logging)
-  #   needs: deploy-mgmt # Only runs if Mgmt is successful
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Configure AWS (Log-Archive)
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.LOG_ARCHIVE_ROLE_ARN }}
-  #         aws-region: us-east-1
-  #     - name: Deploy LogArchiveStack
-  #       run: |
-  #         pip install -r requirements.txt
-  #         npx cdk deploy LogArchiveStack --require-approval never
+  # 2. LOG-ARCHIVE ACCOUNT: Security Vault
+  deploy-security:
+    name: 2. Security (Logging)
+    needs: deploy-mgmt # Only runs if Mgmt is successful
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS (Log-Archive)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.LOG_ARCHIVE_ROLE_ARN }}
+          aws-region: us-east-1
+      - name: Deploy LogArchiveStack
+        run: |
+          pip install -r requirements.txt
+          npx cdk deploy LogArchiveStack --require-approval never
 
   # # 3. NETWORKING ACCOUNT: Regional Traffic Control
   # deploy-network:
