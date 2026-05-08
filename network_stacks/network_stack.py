@@ -19,22 +19,35 @@ class NetworkStack(Stack):
             ]
         )
         
-        # ELITE TAGGING: VPC
+        # --- ELITE TAGGING PROTOCOL ---
+
+        # A. VPC Naming
         cdk.Tags.of(self.vpc).add("Name", "Central-Hub-VPC")
 
-        # ELITE TAGGING: Subnets & Route Tables
+        # B. Internet Gateway (IGW) Naming
+        # CDK creates this automatically. We find it in the VPC's children and tag it.
+        # This is a "Senior Architect" move to ensure console clarity.
+        for child in self.vpc.node.children:
+            if isinstance(child, ec2.CfnInternetGateway):
+                cdk.Tags.of(child).add("Name", "Central-Hub-IGW")
+
+        # C. Subnets & Route Tables Naming
         # We loop through the generated subnets to give them professional names
         for i, subnet in enumerate(self.vpc.public_subnets):
+            # Tag the Subnet
             cdk.Tags.of(subnet).add("Name", f"Central-Public-Subnet-0{i+1}")
-            # Note: CDK doesn't expose Route Tables directly here, but 
-            # the Name tag on the Subnet helps identify them in the console.
+            
+            # Tag the Route Table associated with this subnet
+            # Usually, public subnets share one RT when there is no NAT Gateway
+            if subnet.route_table:
+                cdk.Tags.of(subnet.route_table).add("Name", "Central-Public-RT")
 
         # 2. Add S3 Gateway Endpoint (Free)
         s3_endpoint = self.vpc.add_gateway_endpoint("S3Endpoint", 
             service=ec2.GatewayVpcEndpointAwsService.S3
         )
         
-        # ELITE TAGGING: S3 Endpoint
+        # D. S3 Endpoint Naming
         cdk.Tags.of(s3_endpoint).add("Name", "Central-S3-Gateway-Endpoint")
 
         # 3. THE HUB & SPOKE HANDSHAKE (RAM)
@@ -46,14 +59,13 @@ class NetworkStack(Stack):
             name="CentralNetworkShare",
             allow_external_principals=False,
             principals=principals,
-            # Manual ARN construction fix from earlier
             resource_arns=[
                 f"arn:aws:ec2:{self.region}:{self.account}:subnet/{subnet.subnet_id}" 
                 for subnet in self.vpc.public_subnets
             ]
         )
 
-        # 4. Export the VPC ID to SSM
+        # 4. Export the master VPC ID to SSM
         ssm.StringParameter(self, "VpcIdParam",
             parameter_name="/platform/network/central-vpc-id",
             string_value=self.vpc.vpc_id,
