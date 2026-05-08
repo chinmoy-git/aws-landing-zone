@@ -86,4 +86,4 @@ jobs:
       - name: Deploy Shared Network & Baseline
         run: |
           pip install -r requirements.txt
-          npx cdk deploy WorkloadSharedNetwork WorkloadStack --require-approval never
+          npx cdk deploy WorkloadStack --require-approval never
