@@ -7,10 +7,9 @@ class NetworkStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         # 1. Create the CENTRAL VPC
-        # We explicitly name the VPC so it shows up as "Central-Hub-VPC" in the Console
         self.vpc = ec2.Vpc(self, "CentralHubVpc",
             max_azs=2,
-            nat_gateways=0, # Protects your ₹5,100 debt-clearing buffer
+            nat_gateways=0, # Crucial: Protects your ₹5,100 buffer
             subnet_configuration=[
                 ec2.SubnetConfiguration(
                     name="Public", 
@@ -19,18 +18,26 @@ class NetworkStack(Stack):
                 )
             ]
         )
-        # ELITE MOVE: Add Name tag to the VPC itself
+        
+        # ELITE TAGGING: VPC
         cdk.Tags.of(self.vpc).add("Name", "Central-Hub-VPC")
 
+        # ELITE TAGGING: Subnets & Route Tables
+        # We loop through the generated subnets to give them professional names
+        for i, subnet in enumerate(self.vpc.public_subnets):
+            cdk.Tags.of(subnet).add("Name", f"Central-Public-Subnet-0{i+1}")
+            # Note: CDK doesn't expose Route Tables directly here, but 
+            # the Name tag on the Subnet helps identify them in the console.
+
         # 2. Add S3 Gateway Endpoint (Free)
-        # We capture this in a variable to apply naming tags
         s3_endpoint = self.vpc.add_gateway_endpoint("S3Endpoint", 
             service=ec2.GatewayVpcEndpointAwsService.S3
         )
-        # ELITE MOVE: Give the endpoint a professional label in the Console
+        
+        # ELITE TAGGING: S3 Endpoint
         cdk.Tags.of(s3_endpoint).add("Name", "Central-S3-Gateway-Endpoint")
 
-        # 3. THE HUB & SPOKE HANDSHAKE
+        # 3. THE HUB & SPOKE HANDSHAKE (RAM)
         principals = [shared_services_account]
         if workload_account and workload_account not in ["None", "000000000000"]:
             principals.append(workload_account)
@@ -39,16 +46,16 @@ class NetworkStack(Stack):
             name="CentralNetworkShare",
             allow_external_principals=False,
             principals=principals,
-            # We manually construct the ARN because subnet.subnet_arn is not a valid CDK attribute
+            # Manual ARN construction fix from earlier
             resource_arns=[
                 f"arn:aws:ec2:{self.region}:{self.account}:subnet/{subnet.subnet_id}" 
                 for subnet in self.vpc.public_subnets
             ]
         )
 
-        # 4. Export the VPC ID to SSM (Signpost for the App repos)
+        # 4. Export the VPC ID to SSM
         ssm.StringParameter(self, "VpcIdParam",
             parameter_name="/platform/network/central-vpc-id",
             string_value=self.vpc.vpc_id,
-            description="Central Hub VPC ID shared via RAM"
+            description="The master VPC ID for the Hub-and-Spoke network"
         )
