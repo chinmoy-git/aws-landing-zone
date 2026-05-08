@@ -24,7 +24,13 @@ class OrgStack(Stack):
             parent_id=org_root_id
         )
 
-        # 3. Workloads OU: The Factory (Your RCA Bot & AI Ops live here)
+        # 3. Shared services OU: The Shared Services live here
+        workloads_ou = orgs.CfnOrganizationalUnit(self, "SharedServicesOU",
+            name="SharedServices",
+            parent_id=org_root_id
+        )
+
+        # 4. Workloads OU: The Factory (Your RCA Bot & AI Ops live here)
         workloads_ou = orgs.CfnOrganizationalUnit(self, "WorkloadsOU",
             name="Workloads",
             parent_id=org_root_id

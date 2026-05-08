@@ -10,6 +10,7 @@ env:
   MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
   LOG_ARCHIVE_ACCOUNT_ID: ${{ secrets.LOG_ARCHIVE_ACCOUNT_ID }}
   NETWORK_ACCOUNT_ID: ${{ secrets.NETWORK_ACCOUNT_ID }}
+  SHARED_SERVICES_ACCOUNT_ID: ${{ secrets.SHARED_SERVICES_ACCOUNT_ID }}
   WORKLOAD_ACCOUNT_ID: ${{ secrets.WORKLOAD_ACCOUNT_ID }}
   ORG_ROOT_ID: ${{ secrets.ORG_ROOT_ID }}
 
@@ -71,10 +72,27 @@ jobs:
       #   run: npx cdk deploy NetworkMumbai --require-approval never
 
 
+  # 4. SHARED SERVICES ACCOUNT: Shared Services
+  deploy-sharedservices:
+    name: 4. Shared Services Platform
+    needs: deploy-network
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS (Shared-Services)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.SHARED_SERVICES_ROLE_ARN }}
+          aws-region: us-east-1
+      - name: Deploy SharedServicesStack
+        run: |
+          pip install -r requirements.txt
+          npx cdk deploy SharedServicesStack --require-approval never
+
   # 4. WORKLOAD ACCOUNT: AI Apps & Automation
   deploy-workload:
     name: 4. Workload Platform
-    needs: deploy-network
+    needs: deploy-sharedservices
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

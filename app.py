@@ -6,6 +6,7 @@ import aws_cdk as cdk
 from org_stacks.org_stack import OrgStack
 from security_stacks.log_archive_stack import LogArchiveStack
 from network_stacks.network_stack import NetworkStack
+from shared_services_stacks.shared_services_stack import SharedServicesStack
 from workload_stacks.workload_stack import WorkloadStack
 
 app = cdk.App()
@@ -15,6 +16,7 @@ app = cdk.App()
 mgmt_id = os.getenv("MGMT_ACCOUNT_ID")
 log_id  = os.getenv("LOG_ARCHIVE_ACCOUNT_ID")
 net_id  = os.getenv("NETWORK_ACCOUNT_ID")
+ss_id  = os.getenv("SHARED_SERVICES_ACCOUNT_ID")
 work_id = os.getenv("WORKLOAD_ACCOUNT_ID")
 
 # 2. MANAGEMENT ACCOUNT (Virginia - The Governance Hub)
@@ -50,6 +52,13 @@ if net_id:
 if work_id:
     WorkloadStack(app, "WorkloadStack",
         env=cdk.Environment(account=work_id, region="us-east-1")
+    )
+
+# 6. Shared Services ACCOUNT (Virginia)
+# Virginia is the hub for Shared Services.
+if ss_id:
+    WorkloadStack(app, "SharedServicesStack",
+        env=cdk.Environment(account=ss_id, region="us-east-1")
     )
 
 app.synth()
