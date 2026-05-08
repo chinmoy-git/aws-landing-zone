@@ -19,28 +19,26 @@ class NetworkStack(Stack):
             ]
         )
         
-        # --- ELITE TAGGING PROTOCOL ---
+        # --- ELITE TAGGING PROTOCOL (HARDENED) ---
 
         # A. VPC Naming
         cdk.Tags.of(self.vpc).add("Name", "Central-Hub-VPC")
 
-        # B. Internet Gateway (IGW) Naming
-        # CDK creates this automatically. We find it in the VPC's children and tag it.
-        # This is a "Senior Architect" move to ensure console clarity.
+        # B. Deep Resource Tagging (IGW and Route Tables)
+        # We look inside the VPC node to find the actual AWS CloudFormation resources
         for child in self.vpc.node.children:
+            # Tag the Internet Gateway
             if isinstance(child, ec2.CfnInternetGateway):
                 cdk.Tags.of(child).add("Name", "Central-Hub-IGW")
-
-        # C. Subnets & Route Tables Naming
-        # We loop through the generated subnets to give them professional names
-        for i, subnet in enumerate(self.vpc.public_subnets):
-            # Tag the Subnet
-            cdk.Tags.of(subnet).add("Name", f"Central-Public-Subnet-0{i+1}")
             
-            # Tag the Route Table associated with this subnet
-            # Usually, public subnets share one RT when there is no NAT Gateway
-            if subnet.route_table:
-                cdk.Tags.of(subnet.route_table).add("Name", "Central-Public-RT")
+            # Tag the Route Table(s)
+            # This avoids the "tryGetContext" error by tagging the Cfn resource directly
+            if isinstance(child, ec2.CfnRouteTable):
+                cdk.Tags.of(child).add("Name", "Central-Public-RT")
+
+        # C. Subnets Naming
+        for i, subnet in enumerate(self.vpc.public_subnets):
+            cdk.Tags.of(subnet).add("Name", f"Central-Public-Subnet-0{i+1}")
 
         # 2. Add S3 Gateway Endpoint (Free)
         s3_endpoint = self.vpc.add_gateway_endpoint("S3Endpoint", 
