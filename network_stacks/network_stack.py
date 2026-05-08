@@ -9,7 +9,7 @@ class NetworkStack(Stack):
         # 1. Create the CENTRAL VPC
         self.vpc = ec2.Vpc(self, "CentralHubVpc",
             max_azs=2,
-            nat_gateways=0, # Crucial: Protects your ₹5,100 buffer
+            nat_gateways=0, # Protects your ₹5,100 buffer
             subnet_configuration=[
                 ec2.SubnetConfiguration(
                     name="Public", 
@@ -19,24 +19,25 @@ class NetworkStack(Stack):
             ]
         )
         
-        # --- ELITE TAGGING PROTOCOL (HARDENED) ---
+        # --- ELITE TAGGING PROTOCOL (FINAL VERSION) ---
 
         # A. VPC Naming
         cdk.Tags.of(self.vpc).add("Name", "Central-Hub-VPC")
 
         # B. Deep Resource Tagging (IGW and Route Tables)
-        # We look inside the VPC node to find the actual AWS CloudFormation resources
+        # We use separate counters to ensure distinct numbering in the Console
+        rt_index = 1
         for child in self.vpc.node.children:
             # Tag the Internet Gateway
             if isinstance(child, ec2.CfnInternetGateway):
                 cdk.Tags.of(child).add("Name", "Central-Hub-IGW")
             
-            # Tag the Route Table(s)
-            # This avoids the "tryGetContext" error by tagging the Cfn resource directly
+            # Tag Route Tables distinctly (RT-01, RT-02...)
             if isinstance(child, ec2.CfnRouteTable):
-                cdk.Tags.of(child).add("Name", "Central-Public-RT")
+                cdk.Tags.of(child).add("Name", f"Central-Public-RT-0{rt_index}")
+                rt_index += 1
 
-        # C. Subnets Naming
+        # C. Subnets Naming (Subnet-01, Subnet-02...)
         for i, subnet in enumerate(self.vpc.public_subnets):
             cdk.Tags.of(subnet).add("Name", f"Central-Public-Subnet-0{i+1}")
 
