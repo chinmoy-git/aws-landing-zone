@@ -33,19 +33,21 @@ if log_id:
         env=cdk.Environment(account=log_id, region="us-east-1")
     )
 
-# 4. NETWORKING ACCOUNT (Mumbai - Personal Speed)
-# We deploy networking here so your test instances feel fast from Kolkata.
-if net_id:
-    NetworkStack(app, "NetworkMumbai", 
-        env=cdk.Environment(account=net_id, region="ap-south-1")
-    )
-
-# # 5. WORKLOAD SHARED NETWORK (Virginia)
-# # STRATEGIC MOVE: Deployed in WORKLOAD account to save cross-account data costs.
-# if work_id:
-#     NetworkStack(app, "WorkloadSharedNetwork", 
-#         env=cdk.Environment(account=work_id, region="us-east-1")
+# # 4. NETWORKING ACCOUNT (Mumbai - Personal Speed)
+# # We deploy networking here so your test instances feel fast from Kolkata.
+# if net_id:
+#     NetworkStack(app, "NetworkMumbai", 
+#         env=cdk.Environment(account=net_id, region="ap-south-1")
 #     )
+
+# # 5. NETWORKING ACCOUNT SHARED NETWORK (Virginia)
+# # STRATEGIC MOVE: Deployed in NETWORKING ACCOUNT to shared resources.
+if net_id:
+    NetworkStack(app, "NetworkStack",
+        shared_services_account=ss_id,
+        workload_account=work_id,
+        env=cdk.Environment(account=net_id, region="us-east-1")
+    )
 
 # 6. WORKLOAD ACCOUNT (Virginia - The AI Engine)
 # Virginia is the hub for Amazon Bedrock and the newest AI models.

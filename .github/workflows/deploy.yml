@@ -55,21 +55,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - name: Configure AWS (Network Virginia)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          python-version: '3.9'
-      - name: Install dependencies
+          role-to-assume: ${{ secrets.NETWORK_ROLE_ARN }}
+          aws-region: us-east-1
+      - name: Deploy Central Network
         run: |
           pip install -r requirements.txt
-          npm install -g aws-cdk
-
-      # - name: Configure AWS (Mumbai)
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     role-to-assume: ${{ secrets.NETWORK_ROLE_ARN }}
-      #     aws-region: ap-south-1
-      # - name: Deploy Mumbai VPC
-      #   run: npx cdk deploy NetworkMumbai --require-approval never
+          npx cdk deploy NetworkStack --require-approval never
 
 
   # 4. SHARED SERVICES ACCOUNT: Shared Services

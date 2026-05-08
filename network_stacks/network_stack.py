@@ -1,33 +1,33 @@
-from aws_cdk import Stack, aws_ec2 as ec2, aws_ssm as ssm
+from aws_cdk import Stack, aws_ec2 as ec2, aws_ssm as ssm, aws_ram as ram
 from constructs import Construct
 
 class NetworkStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, workload_account: str, shared_services_account: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # 1. Create the Shared VPC with PUBLIC SUBNETS ONLY (Zero NAT cost)
-        self.vpc = ec2.Vpc(self, "SharedWorkloadVpc",
+        # 1. Create the CENTRAL VPC in the Network Account
+        self.vpc = ec2.Vpc(self, "CentralHubVpc",
             max_azs=2,
-            nat_gateways=0, # Protects your ₹5,100 buffer
+            nat_gateways=0, 
             subnet_configuration=[
-                ec2.SubnetConfiguration(
-                    name="Public",
-                    subnet_type=ec2.SubnetType.PUBLIC,
-                    cidr_mask=24
-                )
+                ec2.SubnetConfiguration(name="Public", subnet_type=ec2.SubnetType.PUBLIC, cidr_mask=24)
             ]
         )
 
-        # 2. Add an S3 Gateway Endpoint (FREE)
-        # This is the "Backdoor" to her school books in S3
-        self.vpc.add_gateway_endpoint("S3Endpoint",
-            service=ec2.GatewayVpcEndpointAwsService.S3
+        # 2. Add S3 Gateway Endpoint (Free)
+        self.vpc.add_gateway_endpoint("S3Endpoint", service=ec2.GatewayVpcEndpointAwsService.S3)
+
+        # 3. THE HUB & SPOKE HANDSHAKE: Share subnets with other accounts via RAM
+        # This allows Workload and Shared-Services to "consume" this network.
+        ram.CfnResourceShare(self, "SubnetShare",
+            name="CentralNetworkShare",
+            allow_external_principals=False,
+            principals=[workload_account, shared_services_account],
+            resource_arns=[subnet.subnet_arn for subnet in self.vpc.public_subnets]
         )
 
-        # 3. Export the VPC ID to the SSM Parameter Store
-        # This is the "Signpost" for the Bidya app repo to find
+        # 4. Export the VPC ID to SSM (In the Network Account)
         ssm.StringParameter(self, "VpcIdParam",
-            parameter_name="/platform/network/workload-vpc-id",
-            string_value=self.vpc.vpc_id,
-            description="The VPC ID for the Bidya Knowledge Engine"
+            parameter_name="/platform/network/central-vpc-id",
+            string_value=self.vpc.vpc_id
         )
