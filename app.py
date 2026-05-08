@@ -40,12 +40,12 @@ if log_id:
 #         env=cdk.Environment(account=net_id, region="ap-south-1")
 #     )
 
-# # 5. NETWORKING ACCOUNT SHARED NETWORK (Virginia)
-# # STRATEGIC MOVE: Deployed in NETWORKING ACCOUNT to shared resources.
+# 5. NETWORKING ACCOUNT SHARED NETWORK (Virginia)
+# STRATEGIC MOVE: Deployed in NETWORKING ACCOUNT to shared resources.
 if net_id:
     NetworkStack(app, "NetworkStack",
-        shared_services_account=ss_id,
-        workload_account=work_id,
+        shared_services_account=str(ss_id),
+        workload_account=str(work_id),
         env=cdk.Environment(account=net_id, region="us-east-1")
     )
 

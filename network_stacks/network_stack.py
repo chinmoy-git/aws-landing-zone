@@ -17,13 +17,21 @@ class NetworkStack(Stack):
         # 2. Add S3 Gateway Endpoint (Free)
         self.vpc.add_gateway_endpoint("S3Endpoint", service=ec2.GatewayVpcEndpointAwsService.S3)
 
-        # 3. THE HUB & SPOKE HANDSHAKE: Share subnets with other accounts via RAM
-        # This allows Workload and Shared-Services to "consume" this network.
+        # 3. THE HUB & SPOKE HANDSHAKE
+        # Prepare the list of accounts that can "see" this road
+        principals = [shared_services_account]
+        if workload_account and workload_account != "None":
+            principals.append(workload_account)
+
         ram.CfnResourceShare(self, "SubnetShare",
             name="CentralNetworkShare",
             allow_external_principals=False,
-            principals=[workload_account, shared_services_account],
-            resource_arns=[subnet.subnet_arn for subnet in self.vpc.public_subnets]
+            principals=principals,
+            # ELITE FIX: We manually construct the ARN because subnet.subnet_arn doesn't exist
+            resource_arns=[
+                f"arn:aws:ec2:{self.region}:{self.account}:subnet/{subnet.subnet_id}" 
+                for subnet in self.vpc.public_subnets
+            ]
         )
 
         # 4. Export the VPC ID to SSM (In the Network Account)
