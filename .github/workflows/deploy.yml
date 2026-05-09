@@ -31,22 +31,22 @@ jobs:
           pip install -r requirements.txt
           npx cdk deploy OrgStack --require-approval never
 
-  # 2. LOG-ARCHIVE ACCOUNT: Security Vault
-  deploy-security:
-    name: 2. Security (Logging)
-    needs: deploy-mgmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Configure AWS (Log-Archive)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.LOG_ARCHIVE_ROLE_ARN }}
-          aws-region: us-east-1
-      - name: Deploy LogArchiveStack
-        run: |
-          pip install -r requirements.txt
-          npx cdk deploy LogArchiveStack --require-approval never
+  # # 2. LOG-ARCHIVE ACCOUNT: Security Vault
+  # deploy-security:
+  #   name: 2. Security (Logging)
+  #   needs: deploy-mgmt
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Configure AWS (Log-Archive)
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.LOG_ARCHIVE_ROLE_ARN }}
+  #         aws-region: us-east-1
+  #     - name: Deploy LogArchiveStack
+  #       run: |
+  #         pip install -r requirements.txt
+  #         npx cdk deploy LogArchiveStack --require-approval never
 
   # 3. NETWORKING ACCOUNT: Regional Traffic Control
   deploy-network:
@@ -66,36 +66,36 @@ jobs:
           npx cdk deploy NetworkStack --require-approval never
 
 
-  # 4. SHARED SERVICES ACCOUNT: Shared Services
-  deploy-sharedservices:
-    name: 4. Shared Services Platform
-    needs: deploy-network
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Configure AWS (Shared-Services)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.SHARED_SERVICES_ROLE_ARN }}
-          aws-region: us-east-1
-      - name: Deploy SharedServicesStack
-        run: |
-          pip install -r requirements.txt
-          npx cdk deploy SharedServicesStack --require-approval never
+  # # 4. SHARED SERVICES ACCOUNT: Shared Services
+  # deploy-sharedservices:
+  #   name: 4. Shared Services Platform
+  #   needs: deploy-network
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Configure AWS (Shared-Services)
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.SHARED_SERVICES_ROLE_ARN }}
+  #         aws-region: us-east-1
+  #     - name: Deploy SharedServicesStack
+  #       run: |
+  #         pip install -r requirements.txt
+  #         npx cdk deploy SharedServicesStack --require-approval never
 
-  # 4. WORKLOAD ACCOUNT: AI Apps & Automation
-  deploy-workload:
-    name: 4. Workload Platform
-    needs: deploy-sharedservices
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Configure AWS (Workload)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.WORKLOAD_ROLE_ARN }}
-          aws-region: us-east-1
-      - name: Deploy Shared Network & Baseline
-        run: |
-          pip install -r requirements.txt
-          npx cdk deploy WorkloadStack --require-approval never
+  # # 4. WORKLOAD ACCOUNT: AI Apps & Automation
+  # deploy-workload:
+  #   name: 4. Workload Platform
+  #   needs: deploy-sharedservices
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Configure AWS (Workload)
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.WORKLOAD_ROLE_ARN }}
+  #         aws-region: us-east-1
+  #     - name: Deploy Shared Network & Baseline
+  #       run: |
+  #         pip install -r requirements.txt
+  #         npx cdk deploy WorkloadStack --require-approval never

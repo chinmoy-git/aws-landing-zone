@@ -6,10 +6,11 @@ class NetworkStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, workload_account: str, shared_services_account: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # 1. Create the CENTRAL VPC
+        # 1. Create the CENTRAL VPC pinned to ONE AZ to avoid data transfer cost
         self.vpc = ec2.Vpc(self, "CentralHubVpc",
-            max_azs=2,
-            nat_gateways=0, # Protects your ₹5,100 buffer
+            max_azs=1,
+            availability_zones=["us-east-1a"],
+            nat_gateways=0,
             subnet_configuration=[
                 ec2.SubnetConfiguration(
                     name="Public", 
