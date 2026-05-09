@@ -8,7 +8,7 @@ class NetworkStack(Stack):
 
         # 1. Create the CENTRAL VPC pinned to ONE AZ to avoid data transfer cost
         self.vpc = ec2.Vpc(self, "CentralHubVpc",
-            max_azs=1,
+            # max_azs=1,
             availability_zones=["us-east-1a"],
             nat_gateways=0,
             subnet_configuration=[
